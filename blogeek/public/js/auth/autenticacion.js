@@ -60,6 +60,7 @@ class Autenticacion {
   }
 
   authCuentaGoogle () {
+    const provider = new firebase.auth.Google
     //$('#avatar').attr('src', result.user.photoURL)
     //$('.modal').modal('close')
     //Materialize.toast(`Bienvenido ${result.user.displayName} !! `, 4000)
