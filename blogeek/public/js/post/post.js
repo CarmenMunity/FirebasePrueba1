@@ -1,19 +1,89 @@
 class Post {
   constructor () {
       // TODO inicializar firestore y settings
+      this.db = firebase.firestore();
+      const settings = { timestapsUnSnapshots : true };
+      this.db.settings(settings);
 
   }
 
   crearPost (uid, emailUser, titulo, descripcion, imagenLink, videoLink) {
-    
+    return this.db.collection('post').add({
+        uid: uid,
+        autor: emailUser,
+        titulo: titulo,
+        descripcion: descripcion,
+        imagenLink: imagenLink,
+        videoLink: videoLink,
+        fecha: firebase.firestore.FielfValue.serverTimestamp()
+    }).then(refDoc =>{
+        console.log(`Id del post => ${refDoc.id}`);
+    }).catch(error =>{
+        console.log( `Error creando el post => ${error}`);
+    });
   }
 
   consultarTodosPost () {
-    
+    this.db.collection('post').orderBy('fecha', 'asc').orderBy('titulo', 'asc')
+    .onSnapshot(querySnapshot => {
+        $('#posts').empty();
+        if(querySnapshot.empty){
+            $('#posts').append(this.obtenerTemplatePostVacio());
+        }else{
+            querySnapshot.forEach(post =>{
+                let postHtml = this.obtenerPostTemplate(
+                    post.data().autor,
+                    post.data().titulo,
+                    post.data().descripcion,
+                    post.data().videoLink,
+                    post.data().imagenLink,
+                    Utilidad.obtenerFecha(post.data().fecha.toDate())
+                )
+                $('#posts').append(postHtml);
+            });
+        }
+    });
   }
 
   consultarPostxUsuario (emailUser) {
-    
+    this.db.collection('post')
+    .where('autor', '==', emailUser).orderBy('fecha', 'asc')
+    .onSnapshot(querySnapshot => {
+        $('#posts').empty();
+        if(querySnapshot.empty){
+            $('#posts').append(this.obtenerTemplatePostVacio());
+        }else{
+            querySnapshot.forEach(post =>{
+                let postHtml = this.obtenerPostTemplate(
+                    post.data().autor,
+                    post.data().titulo,
+                    post.data().descripcion,
+                    post.data().videoLink,
+                    post.data().imagenLink,
+                    Utilidad.obtenerFecha(post.data().fecha.toDate())
+                )
+                $('#posts').append(postHtml);
+            });
+        }
+    });
+  }
+  subirImagenPost(file, uid){
+    const refStorage= firebase.storage().ref(`imgsPosts/${uid}/${file.name}`);
+    const task = refStorage.put(file);
+
+    task.on('state_changed', snapshot =>{
+        var porcentaje= snapshot.bytesTransferred / snapshot.totalBytes * 100;
+        $('determinate').attr('style', `with: ${porcentaje}%`);
+    }, err => {
+        Materialize.toast(`Error subiendo el archivo => ${err.message}`, 4000);
+    }, () => {
+        task.snapshot.ref.getDownloadURL().then(url =>{
+            console.log(url);
+            sessionStorage.setItem('imgNewPost', url);
+        }).catch(err => {
+            Materialize.toast(`Error obteniendo la url de descarga => ${err}`, 4000);
+        });
+    });
   }
 
   obtenerTemplatePostVacio () {
@@ -121,4 +191,5 @@ class Post {
                 </div>
             </article>`
   }
+  
 }

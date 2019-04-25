@@ -15,10 +15,13 @@ $(() => {
   })
 
   $('#btnRegistroPost').click(() => {
-    const post = new Post()
-
+    const post = new Post();
+    const user = firebase.auth().currentUser;
     // TODO: Validar que el usuario esta autenticado
-
+    if(user == null){
+      Materialize.toast(`Para crear el post debes estar autenticado`, 4000);
+      return;
+    }
     // Materialize.toast(`Para crear el post debes estar autenticado`, 4000)
 
     const titulo = $('#tituloNewPost').val()
@@ -51,9 +54,12 @@ $(() => {
 
     // Materialize.toast(`Para crear el post debes estar autenticado`, 4000)
 
-    const file = e.target.files[0]
+    const file = e.target.files[0];
+    const user = firebase.auth().currentUser;
 
     // TODO: Referencia al storage
+    const post= new Post();
+    post.subirImagenPost(file, user.uid);
     
   })
 })

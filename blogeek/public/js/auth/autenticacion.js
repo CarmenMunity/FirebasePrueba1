@@ -60,7 +60,16 @@ class Autenticacion {
   }
 
   authCuentaGoogle () {
-    const provider = new firebase.auth.Google
+    const provider = new firebase.auth.GoogleAuthProviuder();
+    firebase.auth().signInWithPopup(provider)
+    .then(result => {
+      $('#avatar').attr('src', result.user.photoURL);
+      $('.modal').modal('close');
+      Materialize.toast(`Bienvenido ${result.user.displayName} !! `, 4000);
+    }).catch(error => {
+      console.error(error);
+      Materialize.toast(`Error al autentificarse con google: ${error} `, 4000);
+    });
     //$('#avatar').attr('src', result.user.photoURL)
     //$('.modal').modal('close')
     //Materialize.toast(`Bienvenido ${result.user.displayName} !! `, 4000)
